@@ -11,7 +11,7 @@ const AddReceiptPage = () => {
             items={[
               { name: "Dashboard", href: "/" },
               { name: "Receipts", href: "/receipts" },
-              { name: "Add Receipt", href: "/receipts/add" },
+              { name: "Add Receipt", href: "" },
             ]}
           />
           <AddReceipt />

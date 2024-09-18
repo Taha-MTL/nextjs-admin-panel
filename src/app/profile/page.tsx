@@ -14,7 +14,7 @@ const Profile = () => {
       <div className="mx-auto w-full max-w-[970px]">
         <Breadcrumb items={[
           { name: "Dashboard", href: "/" },
-          { name: "Profile", href: "/profile" },
+          { name: "Profile", href: "" },
         ]} />
 
         <ProfileBox />

@@ -10,7 +10,7 @@ const ReceiptsListPage = () => {
           <Breadcrumb
             items={[
               { name: "Dashboard", href: "/" },
-              { name: "Receipts", href: "/receipts" },
+              { name: "Receipts", href: "" },
             ]}
           />
           <ReceiptList />
