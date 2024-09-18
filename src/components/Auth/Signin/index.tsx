@@ -1,34 +1,36 @@
 "use client";
-import Link from "next/link";
 import React from "react";
+import Link from "next/link";
 import GoogleSigninButton from "../GoogleSigninButton";
 import SigninWithPassword from "../SigninWithPassword";
 
 export default function Signin() {
   return (
-    <>
-      <GoogleSigninButton text="Sign in" />
+    <div className="space-y-6">
+      <GoogleSigninButton text="Sign in with Google" />
 
-      <div className="my-6 flex items-center justify-center">
-        <span className="block h-px w-full bg-stroke dark:bg-dark-3"></span>
-        <div className="block w-full min-w-fit bg-white px-3 text-center font-medium dark:bg-gray-dark">
-          Or sign in with email
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-gray-300 dark:border-gray-600"></span>
         </div>
-        <span className="block h-px w-full bg-stroke dark:bg-dark-3"></span>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+            Or continue with
+          </span>
+        </div>
       </div>
 
-      <div>
-        <SigninWithPassword />
-      </div>
+      <SigninWithPassword />
 
-      <div className="mt-6 text-center">
-        <p>
-          Don’t have any account?{" "}
-          <Link href="/auth/signup" className="text-primary">
-            Sign Up
-          </Link>
-        </p>
-      </div>
-    </>
+      <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+        Don’t have an account?{" "}
+        <Link
+          href="/auth/signup"
+          className="font-medium text-primary hover:underline"
+        >
+          Sign up
+        </Link>
+      </p>
+    </div>
   );
 }
