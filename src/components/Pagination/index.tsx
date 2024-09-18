@@ -55,7 +55,7 @@ const Pagination: React.FC<PaginationProps> = ({
           {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}
         </strong>{" "}
         to <strong>{Math.min(currentPage * itemsPerPage, totalItems)}</strong>{" "}
-        of <strong>{totalItems}</strong> results
+        of <strong>{totalItems}</strong> result(s)
       </div>
 
       <div className="flex items-center space-x-2">
@@ -66,7 +66,7 @@ const Pagination: React.FC<PaginationProps> = ({
           id="itemsPerPage"
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white px-3 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
+          className="rounded-md bg-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
         >
           <option value={5}>5</option>
           <option value={10}>10</option>

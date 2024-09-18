@@ -5,14 +5,14 @@ import EditReceipt from "@/components/Receipt/Edit";
 const EditReceiptPage = () => {
   return (
     <DefaultLayout>
-      <Breadcrumb
-        items={[
-          { name: "Home", href: "/" },
-          { name: "Receipts", href: "/receipts" },
-          { name: "Edit Receipt", href: "" },
-        ]}
-      />
-      <div className="p-6">
+      <div className="mx-auto w-full max-w-[970px]">
+        <Breadcrumb
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Receipts", href: "/receipts" },
+            { name: "Edit Receipt", href: "" },
+          ]}
+        />
         <EditReceipt />
       </div>
     </DefaultLayout>

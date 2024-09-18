@@ -1,17 +1,11 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { showToast, dismissToast } from "../Toast";
-
-interface ReceiptItem {
-  id: number;
-  itemName: string;
-  unit: "kg" | "gram";
-  quantity: number;
-  amount: number;
-}
+import { dismissToast, showToast } from "../Toast";
+import { ReceiptItem } from "./interface";
 
 const EditReceipt = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,18 +35,6 @@ const EditReceipt = () => {
     fetchReceipt();
   }, [id]);
 
-  const handleItemChange = (
-    id: number,
-    field: keyof ReceiptItem,
-    value: string | number,
-  ) => {
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item,
-      ),
-    );
-  };
-
   const handleAddItem = () => {
     setItems([
       ...items,
@@ -66,12 +48,21 @@ const EditReceipt = () => {
     ]);
   };
 
-  const calculateTotal = () => {
-    return items.reduce((total, item) => total + item.amount, 0);
+  const handleItemChange = (
+    id: number,
+    field: keyof ReceiptItem,
+    value: string | number,
+  ) => {
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
+    );
   };
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+
     if (!customerName) {
       newErrors.customerName = "Customer name is required.";
     }
@@ -92,6 +83,10 @@ const EditReceipt = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const calculateTotal = () => {
+    return items.reduce((total, item) => total + item.amount, 0);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -110,12 +105,14 @@ const EditReceipt = () => {
         totalAmount: calculateTotal(),
         updatedAt: new Date().toISOString(),
       });
-      dismissToast(toastID);
+
       showToast("success", "Receipt updated successfully!");
       router.push("/receipts");
     } catch (error) {
       showToast("error", "Failed to update receipt.");
       console.error("Error updating receipt: ", error);
+    } finally {
+      dismissToast(toastID);
     }
   };
 
@@ -206,6 +203,7 @@ const EditReceipt = () => {
                             parseFloat(e.target.value),
                           )
                         }
+                        onFocus={(e) => e.target.select()}
                         className="w-full rounded-[7px] border-[1.5px] border-stroke bg-transparent px-3 py-1.5 text-dark outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-2 dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
                         required
                       />
@@ -226,6 +224,7 @@ const EditReceipt = () => {
                             parseFloat(e.target.value),
                           )
                         }
+                        onFocus={(e) => e.target.select()}
                         className="w-full rounded-[7px] border-[1.5px] border-stroke bg-transparent px-3 py-1.5 text-dark outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-2 dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
                         required
                       />
@@ -252,7 +251,7 @@ const EditReceipt = () => {
 
           <div className="mb-6 text-right">
             <p className="text-body-sm font-medium text-dark dark:text-white">
-              Total Amount: ${calculateTotal().toFixed(2)}
+              Total Amount: ₹ {calculateTotal().toFixed(2)}
             </p>
           </div>
 

@@ -7,6 +7,7 @@ import Image from "next/image";
 import SidebarItem from "@/components/Sidebar/SidebarItem";
 import ClickOutside from "@/components/ClickOutside";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -41,6 +42,8 @@ const menuGroups = [
         ),
         label: "Dashboard",
         route: "/",
+        // route: "#",
+        // children: [{ label: "E-commerce", route: "/e-commerce" }],
       },
       {
         icon: (
@@ -108,6 +111,11 @@ const menuGroups = [
         label: "Profile",
         route: "/profile",
       },
+      {
+        icon: <SettingsIcon />,
+        label: "Settings",
+        route: "/settings",
+      },
     ],
   },
 ];
@@ -120,7 +128,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <ClickOutside onClick={() => setSidebarOpen(false)}>
       <aside
-        className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden border-r border-stroke bg-white dark:border-stroke-dark dark:bg-gray-dark lg:static lg:translate-x-0 ${
+        className={`absolute left-0 top-0 z-99 flex h-screen w-72.5 flex-col overflow-y-hidden border-r border-stroke bg-white dark:border-stroke-dark dark:bg-gray-dark lg:static lg:translate-x-0 ${
           sidebarOpen
             ? "translate-x-0 duration-300 ease-linear"
             : "-translate-x-full"

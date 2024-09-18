@@ -35,7 +35,7 @@ const DeleteAlert: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 outline-none focus:outline-none">
+    <div className="z-999 fixed inset-0 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50 outline-none focus:outline-none">
       <ClickOutside onClick={onClose}>
         <div className="relative mx-auto my-6 w-auto max-w-sm">
           <div className="relative flex w-full flex-col rounded-lg bg-white shadow-lg outline-none focus:outline-none dark:bg-gray-800">

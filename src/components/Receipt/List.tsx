@@ -16,13 +16,7 @@ import { Edit, Delete } from "@mui/icons-material";
 import DeleteAlert from "@/components/Alerts/Delete";
 import Loader from "../Loader/Subtle";
 import { showToast } from "../Toast";
-
-interface Receipt {
-  id: string;
-  customerName: string;
-  totalAmount: number;
-  createdAt: Date;
-}
+import { Receipt } from "./interface";
 
 const ReceiptList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,18 +36,28 @@ const ReceiptList = () => {
   };
 
   useEffect(() => {
-    const fetchReceipts = async () => {
-      const q = query(collection(db, "receipts"), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const fetchedReceipts: Receipt[] = [];
-      querySnapshot.forEach((doc) => {
-        fetchedReceipts.push({ id: doc.id, ...doc.data() } as Receipt);
-      });
-      setReceipts(fetchedReceipts);
-      setLoading(false);
-    };
     fetchReceipts();
   }, []);
+
+  const fetchReceipts = async () => {
+    try {
+      const q = query(collection(db, "receipts"), orderBy("createdAt", "desc"));
+      const fetchedReceipts: Receipt[] = (await getDocs(q)).docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          }) as Receipt,
+      );
+
+      setReceipts(fetchedReceipts);
+    } catch (error) {
+      console.error("Error fetching receipts: ", error);
+      showToast("error", "Failed to fetch receipts");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeleteClick = (id: string) => {
     setReceiptToDelete(id);
@@ -62,18 +66,20 @@ const ReceiptList = () => {
 
   const handleDeleteConfirm = async () => {
     if (receiptToDelete) {
+      setLoading(true);
       try {
         await deleteDoc(doc(db, "receipts", receiptToDelete));
         setReceipts(
           receipts.filter((receipt) => receipt.id !== receiptToDelete),
         );
-        setIsAlertOpen(false);
         setReceiptToDelete(null);
         showToast("success", "Receipt deleted successfully");
       } catch (error) {
-        setIsAlertOpen(false);
         console.error("Error deleting receipt: ", error);
         showToast("error", "Failed to delete receipt");
+      } finally {
+        setIsAlertOpen(false);
+        setLoading(false);
       }
     }
   };
@@ -125,7 +131,7 @@ const ReceiptList = () => {
                       </td>
                       <td className="border-[#eee] px-4 py-4 dark:border-dark-3">
                         <p className="text-dark dark:text-white">
-                          ${receipt.totalAmount.toFixed(2)}
+                          ₹ {receipt.totalAmount.toFixed(2)}
                         </p>
                       </td>
                       <td className="border-[#eee] px-4 py-4 dark:border-dark-3">

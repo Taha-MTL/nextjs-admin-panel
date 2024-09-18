@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { dismissToast, showToast } from "../Toast";
-
-interface ReceiptItem {
-  id: number;
-  itemName: string;
-  unit: "kg" | "gram";
-  quantity: number;
-  amount: number;
-}
+import { ReceiptItem } from "./interface";
 
 const AddReceipt = () => {
   const router = useRouter();
@@ -91,12 +84,14 @@ const AddReceipt = () => {
         totalAmount: calculateTotal(),
         createdAt: new Date().toISOString(),
       });
-      dismissToast(toastID);
+
       showToast("success", "Receipt created successfully!");
       router.push("/receipts");
     } catch (error) {
       showToast("error", "Failed to create receipt.");
       console.error("Error adding receipt: ", error);
+    } finally {
+      dismissToast(toastID);
     }
   };
 
@@ -235,7 +230,7 @@ const AddReceipt = () => {
 
           <div className="mb-6 text-right">
             <p className="text-body-sm font-medium text-dark dark:text-white">
-              Total Amount: ${calculateTotal().toFixed(2)}
+              Total Amount: ₹ {calculateTotal().toFixed(2)}
             </p>
           </div>
 
