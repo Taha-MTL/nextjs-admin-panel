@@ -4,7 +4,7 @@ import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import showToast from "@/components/Toast";
+import { showToast } from "@/components/Toast";
 
 interface FormData {
   email: string;

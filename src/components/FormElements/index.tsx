@@ -17,7 +17,12 @@ import SelectGroupTwo from "@/components/FormElements/SelectGroup/SelectGroupTwo
 const FormElements = () => {
   return (
     <>
-      <Breadcrumb pageName="FormElements" />
+      <Breadcrumb
+        items={[
+          { name: "Dashboard", href: "/" },
+          { name: "Form Elements", href: "/forms/form-elements" },
+        ]}
+      />
 
       <div className="grid grid-cols-1 gap-9 sm:grid-cols-2">
         <div className="flex flex-col gap-9">

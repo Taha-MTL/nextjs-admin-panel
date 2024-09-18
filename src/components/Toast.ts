@@ -11,26 +11,38 @@ const showToast = (
   type: ToastType,
   message: string,
   options: ToastOptions = {},
-): void => {
+): string => {
   const defaultOptions: ToastOptions = {
     duration: 3000,
     position: "top-right",
     ...options,
   };
 
+  let toastId: string;
+
   switch (type) {
     case "success":
-      toast.success(message, defaultOptions);
+      toastId = toast.success(message, defaultOptions);
       break;
     case "error":
-      toast.error(message, defaultOptions);
+      toastId = toast.error(message, defaultOptions);
       break;
     case "loading":
-      toast.loading(message, defaultOptions);
+      toastId = toast.loading(message, defaultOptions);
       break;
     default:
-      toast(message, defaultOptions);
+      toastId = toast(message, defaultOptions);
+  }
+
+  return toastId;
+};
+
+const dismissToast = (toastId?: string): void => {
+  if (toastId) {
+    toast.dismiss(toastId);
+  } else {
+    toast.dismiss();
   }
 };
 
-export default showToast;
+export { showToast, dismissToast };

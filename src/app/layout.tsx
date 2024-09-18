@@ -4,11 +4,11 @@ import "flatpickr/dist/flatpickr.min.css";
 import "@/css/satoshi.css";
 import "@/css/style.css";
 import React, { useEffect, useState } from "react";
-import Loader from "@/components/common/Loader";
+import Loader from "@/components/Loader/FullPage";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { Toaster } from "react-hot-toast";
-import { auth } from "./config/firebase";
+import { auth } from "@/lib/firebase";
 
 const publicRoutes = ["/auth/signin"];
 
