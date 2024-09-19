@@ -5,9 +5,18 @@ import DropdownUser from "./DropdownUser";
 import Image from "next/image";
 import SearchForm from "@/components/Header/SearchForm";
 
-const Header = (props: {
-  sidebarOpen: string | boolean | undefined;
-  setSidebarOpen: (arg0: boolean) => void;
+interface HeaderProps {
+  sidebarOpen: boolean;
+  clickOutside: boolean;
+  toggleSidebar: () => void;
+  setClickOutside: (arg: boolean) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({
+  sidebarOpen,
+  toggleSidebar,
+  clickOutside,
+  setClickOutside,
 }) => {
   return (
     <header className="sticky top-0 z-99 flex w-full border-b border-stroke bg-white dark:border-stroke-dark dark:bg-gray-dark">
@@ -18,7 +27,11 @@ const Header = (props: {
             aria-controls="sidebar"
             onClick={(e) => {
               e.stopPropagation();
-              props.setSidebarOpen(!props.sidebarOpen);
+              if (clickOutside) {
+                setClickOutside(false);
+              } else {
+                toggleSidebar();
+              }
             }}
             className="z-99 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-dark-3 dark:bg-dark-2 lg:hidden"
           >
@@ -26,29 +39,29 @@ const Header = (props: {
               <span className="du-block absolute right-0 h-full w-full">
                 <span
                   className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-dark delay-[0] duration-200 ease-in-out dark:bg-white ${
-                    !props.sidebarOpen && "!w-full delay-300"
+                    !sidebarOpen ? "!w-full delay-300" : ""
                   }`}
                 ></span>
                 <span
                   className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-dark delay-150 duration-200 ease-in-out dark:bg-white ${
-                    !props.sidebarOpen && "delay-400 !w-full"
+                    !sidebarOpen && "delay-400 !w-full"
                   }`}
                 ></span>
                 <span
                   className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-dark delay-200 duration-200 ease-in-out dark:bg-white ${
-                    !props.sidebarOpen && "!w-full delay-500"
+                    !sidebarOpen && "!w-full delay-500"
                   }`}
                 ></span>
               </span>
               <span className="absolute right-0 h-full w-full rotate-45">
                 <span
                   className={`absolute left-2.5 top-0 block h-full w-0.5 rounded-sm bg-dark delay-300 duration-200 ease-in-out dark:bg-white ${
-                    !props.sidebarOpen && "!h-0 !delay-[0]"
+                    !sidebarOpen && "!h-0 !delay-[0]"
                   }`}
                 ></span>
                 <span
                   className={`delay-400 absolute left-0 top-2.5 block h-0.5 w-full rounded-sm bg-dark duration-200 ease-in-out dark:bg-white ${
-                    !props.sidebarOpen && "!h-0 !delay-200"
+                    !sidebarOpen && "!h-0 !delay-200"
                   }`}
                 ></span>
               </span>

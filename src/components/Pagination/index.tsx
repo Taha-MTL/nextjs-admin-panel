@@ -19,7 +19,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxVisiblePages = 5;
+    const maxVisiblePages = 3;
 
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -48,8 +48,8 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div>
+    <div className="flex flex-col items-center space-y-4 sm:flex-row sm:justify-between sm:space-y-0">
+      <div className="text-sm">
         Showing{" "}
         <strong>
           {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}
@@ -58,15 +58,15 @@ const Pagination: React.FC<PaginationProps> = ({
         of <strong>{totalItems}</strong> result(s)
       </div>
 
-      <div className="flex items-center space-x-2">
-        <label htmlFor="itemsPerPage" className="text-gray-700">
+      <div className="flex items-center space-x-4">
+        <label htmlFor="itemsPerPage" className="text-sm text-gray-700">
           Items per page:
         </label>
         <select
           id="itemsPerPage"
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="rounded-md bg-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          className="rounded-md bg-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
         >
           <option value={5}>5</option>
           <option value={10}>10</option>
@@ -79,10 +79,10 @@ const Pagination: React.FC<PaginationProps> = ({
           disabled={currentPage === 1}
           className="rounded-md bg-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Previous
+          Prev
         </button>
 
-        {renderPageNumbers()}
+        <div className="flex space-x-1">{renderPageNumbers()}</div>
 
         <button
           onClick={() => onPageChange(currentPage + 1)}

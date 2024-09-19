@@ -2,8 +2,9 @@ import React from "react";
 import Link from "next/link";
 import SidebarDropdown from "@/components/Sidebar/SidebarDropdown";
 
-const SidebarItem = ({ item, pageName, setPageName }: any) => {
+const SidebarItem = ({ item, pageName, setPageName, setSidebarOpen }: any) => {
   const handleClick = () => {
+    setSidebarOpen(false);
     const updatedPageName =
       pageName !== item.label.toLowerCase() ? item.label.toLowerCase() : "";
     return setPageName(updatedPageName);

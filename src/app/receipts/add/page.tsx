@@ -1,6 +1,12 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import AddReceipt from "@/components/Receipt/Add";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Add Receipt | NextAdmin",
+  description: "This is Next.js Add Receipts page for NextAdmin Dashboard Kit",
+};
 
 const AddReceiptPage = () => {
   return (
