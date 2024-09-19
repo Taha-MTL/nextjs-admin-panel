@@ -12,5 +12,4 @@ All these features and more make **NextAdmin** a robust, well-rounded solution f
 
 ## Live Preview
 
-<!-- markdownlint-disable-next-line MD033 -->
-<a href="https://nextjs-admin-panel-mu.vercel.app" target="_blank">View Live Project on Vercel</a>
+[View Live Project on Vercel](https://nextjs-admin-panel-mu.vercel.app)
