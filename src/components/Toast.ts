@@ -14,7 +14,7 @@ const showToast = (
 ): string => {
   const defaultOptions: ToastOptions = {
     duration: 3000,
-    position: "top-right",
+    position: "top-center",
     ...options,
   };
 

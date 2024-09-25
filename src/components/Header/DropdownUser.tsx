@@ -5,8 +5,11 @@ import ClickOutside from "@/components/ClickOutside";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
+import { useUser } from "@/context/UserContext";
+import { Avatar } from "@mui/material";
 
 const DropdownUser = () => {
+  const { user } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
 
@@ -27,21 +30,21 @@ const DropdownUser = () => {
         href="#"
       >
         <span className="h-12 w-12 rounded-full">
-          <Image
-            width={112}
-            height={112}
-            src="/images/user/user-03.png"
-            style={{
-              width: "auto",
-              height: "auto",
-            }}
-            alt="User"
-            className="overflow-hidden rounded-full"
-          />
+          {user?.photoURL ? (
+            <Image
+              src={user.photoURL}
+              alt="Profile Picture"
+              width={150}
+              height={150}
+              className="rounded-full"
+            />
+          ) : (
+            <Avatar sx={{ width: 50, height: 50 }} alt="User Avatar" />
+          )}
         </span>
 
         <span className="flex items-center gap-2 font-medium text-dark dark:text-dark-6">
-          <span className="hidden lg:block">Admin</span>
+          <span className="hidden lg:block">{user?.username}</span>
 
           <svg
             className={`fill-current duration-200 ease-in ${dropdownOpen && "rotate-180"}`}
@@ -68,27 +71,27 @@ const DropdownUser = () => {
         >
           <div className="flex items-center gap-2.5 px-5 pb-5.5 pt-3.5">
             <span className="relative block h-12 w-12 rounded-full">
-              <Image
-                width={112}
-                height={112}
-                src="/images/user/user-03.png"
-                style={{
-                  width: "auto",
-                  height: "auto",
-                }}
-                alt="User"
-                className="overflow-hidden rounded-full"
-              />
+              {user?.photoURL ? (
+                <Image
+                  src={user.photoURL}
+                  alt="Profile Picture"
+                  width={150}
+                  height={150}
+                  className="rounded-full"
+                />
+              ) : (
+                <Avatar sx={{ width: 50, height: 50 }} alt="User Avatar" />
+              )}
 
               <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green dark:border-gray-dark"></span>
             </span>
 
             <span className="block">
               <span className="block font-medium text-dark dark:text-white">
-                Admin
+                {user?.fullName}
               </span>
               <span className="block font-medium text-dark-5 dark:text-dark-6">
-                jonson@nextadmin.com
+                {user?.email}
               </span>
             </span>
           </div>

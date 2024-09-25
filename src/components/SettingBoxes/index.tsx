@@ -3,26 +3,36 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
-import { auth, db } from "@/lib/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import {
   Person,
   Work,
-  Email,
   AccountCircle,
   Edit,
   Close,
+  Phone,
+  Delete,
 } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
 import Loader from "../Loader/Subtle";
-import { dismissToast, showToast } from "../Toast";
+import { showToast } from "../Toast";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 import UserData from "@/interface/userData.interface";
+import DeleteAlert from "../Alerts/Delete";
 
 interface FormData {
   fullName: string;
   title: string;
-  emailAddress: string;
+  phoneNumber: string;
   username: string;
   bio: string;
 }
@@ -32,13 +42,14 @@ interface PhotoData {
 }
 
 const SettingBoxes: React.FC = () => {
-  const [userId, setUserId] = useState<string | undefined>(
-    auth.currentUser?.uid,
-  );
+  const { user, setUser } = useUser();
   const [loading, setLoading] = useState<boolean>(true);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
-  const [previewURL, setPreviewURL] = useState<string | null>(null); // State for image preview
+  const [previewURL, setPreviewURL] = useState<string | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
+
   const storage = getStorage();
+  const router = useRouter();
 
   const {
     register: registerPersonalInfo,
@@ -51,42 +62,35 @@ const SettingBoxes: React.FC = () => {
     register: registerPhoto,
     handleSubmit: handlePhotoSubmit,
     formState: { errors: photoErrors },
+    clearErrors: clearPhotoErrors,
   } = useForm<PhotoData>();
 
   useEffect(() => {
-    const fetchUserSettings = async () => {
-      try {
-        if (userId) {
-          const userDoc = await getDoc(doc(db, "users", userId));
-          const userData = userDoc.data() as FormData & PhotoData;
-          Object.keys(userData).forEach((key) => {
-            setPersonalValue(
-              key as keyof FormData,
-              userData[key as keyof FormData],
-            );
-          });
-          setPhotoURL(userData.photoURL || null);
-          setUserId(userId);
-        } else {
-          dismissToast();
-          showToast("error", "User not found");
-        }
-      } catch (e) {
-        showToast("error", "Something went wrong");
-        console.error("Sign in error:", e);
-      } finally {
-        setLoading(false);
+    const setUserData = async () => {
+      if (user) {
+        console.log(user);
+        Object.keys(user).forEach((key) => {
+          setPersonalValue(
+            key as keyof FormData,
+            user[key as keyof FormData] || "",
+          );
+        });
+        setPhotoURL(user.photoURL || null);
+      } else {
+        router.push("/auth/signin");
       }
     };
 
-    fetchUserSettings();
+    setUserData();
+    setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.currentUser]);
+  }, [user]);
 
   const onSubmitPersonalInfo = async (data: FormData) => {
     try {
       setLoading(true);
-      await setDoc(doc(db, "users", userId as string), data, { merge: true });
+      await setDoc(doc(db, "users", user!.id), data, { merge: true });
+      setUser({ ...user, ...data } as UserData);
       showToast("success", "Personal information updated successfully");
     } catch (error) {
       console.error("Error updating personal information:", error);
@@ -110,6 +114,7 @@ const SettingBoxes: React.FC = () => {
         return;
       }
 
+      clearPhotoErrors("photoURL");
       const previewURL = URL.createObjectURL(file);
       setPreviewURL(previewURL);
     }
@@ -127,16 +132,17 @@ const SettingBoxes: React.FC = () => {
 
     try {
       setLoading(true);
-      const storageRef = ref(storage, `profilePhotos/${userId}`);
+      const storageRef = ref(storage, `profilePhotos/${user!.id}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
       await setDoc(
-        doc(db, "users", userId as string),
+        doc(db, "users", user!.id),
         { photoURL: downloadURL },
         { merge: true },
       );
 
+      setUser({ ...user, photoURL: downloadURL } as UserData);
       setPhotoURL(downloadURL);
       showToast("success", "Profile picture updated successfully");
       setPreviewURL(null);
@@ -148,6 +154,37 @@ const SettingBoxes: React.FC = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeletePhoto = () => {
+    setIsAlertOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setLoading(true);
+      const storageRef = ref(storage, `profilePhotos/${user!.id}`);
+      await deleteObject(storageRef);
+
+      await setDoc(
+        doc(db, "users", user!.id),
+        { photoURL: null },
+        { merge: true },
+      );
+
+      setUser({ ...user, photoURL: null } as UserData);
+      setPhotoURL(null);
+      showToast("success", "Profile picture deleted successfully");
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      showToast(
+        "error",
+        "Something went wrong while deleting the profile picture.",
+      );
+    } finally {
+      setLoading(false);
+      setIsAlertOpen(false);
     }
   };
 
@@ -231,33 +268,33 @@ const SettingBoxes: React.FC = () => {
                   <div className="mb-4 w-full sm:w-1/2">
                     <label
                       className="mb-3 block text-body-sm font-medium text-dark dark:text-white"
-                      htmlFor="emailAddress"
+                      htmlFor="phoneNumber"
                     >
-                      Email Address
+                      Phone Number
                     </label>
                     <div className="relative flex h-12 items-center">
                       <span className="absolute left-4.5 top-1/2 -translate-y-1/2">
-                        <Email />
+                        <Phone />
                       </span>
                       <input
                         className={`w-full rounded-[7px] border-[1.5px] ${
-                          personalErrors.emailAddress
+                          personalErrors.phoneNumber
                             ? "border-red-500"
                             : "border-stroke focus:border-primary dark:border-dark-3 dark:focus:border-primary"
                         } bg-white py-2.5 pl-12.5 pr-4.5 text-dark focus-visible:outline-none dark:bg-dark-2 dark:text-white`}
-                        type="email"
-                        {...registerPersonalInfo("emailAddress", {
-                          required: "Email is required",
+                        type="tel"
+                        {...registerPersonalInfo("phoneNumber", {
+                          required: "Phone number is required",
                           pattern: {
-                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "Invalid email address",
+                            value: /^\+?[0-9 ]{1,15}$/,
+                            message: "Invalid Phone Number",
                           },
                         })}
                       />
                     </div>
-                    {personalErrors.emailAddress && (
+                    {personalErrors.phoneNumber && (
                       <p className="mt-1 text-sm text-red-500">
-                        {personalErrors.emailAddress.message}
+                        {personalErrors.phoneNumber.message}
                       </p>
                     )}
                   </div>
@@ -335,13 +372,25 @@ const SettingBoxes: React.FC = () => {
             <form onSubmit={handlePhotoSubmit(onSubmitPhoto)}>
               <div className="flex flex-col items-center p-7">
                 {photoURL ? (
-                  <Image
-                    src={photoURL}
-                    alt="Profile Picture"
-                    width={150}
-                    height={150}
-                    className="rounded-full"
-                  />
+                  <div className="relative">
+                    <Image
+                      src={photoURL}
+                      alt="Profile Picture"
+                      width={150}
+                      height={150}
+                      className="rounded-full"
+                    />
+                    <IconButton
+                      className="absolute bottom-0 right-0 bg-white shadow-md hover:bg-gray-100"
+                      onClick={handleDeletePhoto}
+                      size="small"
+                    >
+                      <Delete
+                        fontSize="small"
+                        className="text-red-400 hover:text-red-600"
+                      />
+                    </IconButton>
+                  </div>
                 ) : (
                   <Avatar sx={{ width: 150, height: 150 }} alt="User Avatar" />
                 )}
@@ -422,6 +471,14 @@ const SettingBoxes: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <DeleteAlert
+        isOpen={isAlertOpen}
+        onClose={() => setIsAlertOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Confirm Delete"
+        message="Are you sure you want to delete your profile picture? This action cannot be undone."
+      />
     </>
   );
 };

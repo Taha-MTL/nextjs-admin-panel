@@ -12,6 +12,7 @@ import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/components/Toast";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { RememberMe } from "@mui/icons-material";
 
 interface SignInFormData {
   email: string;
@@ -45,19 +46,7 @@ const SigninWithPassword: React.FC<Props> = ({
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        user: { uid: userId },
-      } = await signInWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password,
-      );
-      const { showPassword, ...data } = formData;
-      await setDoc(
-        doc(db, "users", userId as string),
-        { ...data, id: userId },
-        { merge: true },
-      );
+      await signInWithEmailAndPassword(auth, formData.email, formData.password);
       showToast("success", "Signed in successfully!");
       router.push("/");
     } catch (error) {
