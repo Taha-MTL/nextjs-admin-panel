@@ -25,7 +25,8 @@ const EditReceipt = () => {
           setCustomerName(data.customerName);
           setItems(data.items || []);
         } else {
-          console.log("No such document!");
+          showToast("error", "No such document!");
+          router.back();
         }
       } catch (error) {
         console.error("Error fetching receipt: ", error);
@@ -33,6 +34,7 @@ const EditReceipt = () => {
     };
 
     fetchReceipt();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleAddItem = () => {

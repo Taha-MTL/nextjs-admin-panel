@@ -1,11 +1,29 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import GoogleSigninButton from "../GoogleSigninButton";
 import SigninWithPassword from "../SigninWithPassword";
+import Loader from "@/components/Loader/Subtle";
+
+interface SignInFormData {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+  showPassword: boolean;
+}
 
 export default function Signin() {
-  return (
+  const [loading, setLoading] = useState<boolean>(false);
+  const [signinFormData, setSigninFormData] = useState<SignInFormData>({
+    email: "",
+    password: "",
+    rememberMe: false,
+    showPassword: false,
+  });
+
+  return loading ? (
+    <Loader />
+  ) : (
     <div className="space-y-6">
       <GoogleSigninButton text="Sign in with Google" />
 
@@ -20,7 +38,11 @@ export default function Signin() {
         </div>
       </div>
 
-      <SigninWithPassword />
+      <SigninWithPassword
+        setLoading={setLoading}
+        setFormData={setSigninFormData}
+        formData={signinFormData}
+      />
 
       <p className="text-center text-sm text-gray-600 dark:text-gray-400">
         Don’t have an account?{" "}

@@ -1,29 +1,41 @@
 "use client";
-import React, { ChangeEvent, FormEvent, useState } from "react";
+import React, {
+  ChangeEvent,
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useState,
+} from "react";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/components/Toast";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
-interface FormData {
+interface SignInFormData {
   email: string;
   password: string;
-  remember: boolean;
+  rememberMe: boolean;
+  showPassword: boolean;
 }
 
-export default function SigninWithPassword() {
-  const [data, setData] = useState<FormData>({
-    email: "",
-    password: "",
-    remember: false,
-  });
-  const [showPassword, setShowPassword] = useState(false);
+interface Props {
+  setLoading: Dispatch<SetStateAction<boolean>>;
+  setFormData: Dispatch<SetStateAction<SignInFormData>>;
+  formData: SignInFormData;
+}
+
+const SigninWithPassword: React.FC<Props> = ({
+  setLoading,
+  formData,
+  setFormData,
+}) => {
   const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value, type, checked } = e.target;
-    setData((prevData) => ({
+    setFormData((prevData) => ({
       ...prevData,
       [name]: type === "checkbox" ? checked : value,
     }));
@@ -31,19 +43,36 @@ export default function SigninWithPassword() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
+      const {
+        user: { uid: userId },
+      } = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password,
+      );
+      const { showPassword, ...data } = formData;
+      await setDoc(
+        doc(db, "users", userId as string),
+        { ...data, id: userId },
+        { merge: true },
+      );
       showToast("success", "Signed in successfully!");
       router.push("/");
     } catch (error) {
       showToast("error", "Failed to sign in. Please check your credentials.");
       console.error("Sign in error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    setFormData((prevData) => ({
+      ...prevData,
+      showPassword: !prevData.showPassword,
+    }));
   };
 
   return (
@@ -60,7 +89,7 @@ export default function SigninWithPassword() {
             type="email"
             name="email"
             id="email"
-            value={data.email}
+            value={formData.email}
             onChange={handleChange}
             required
             className="block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -88,10 +117,10 @@ export default function SigninWithPassword() {
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
           <input
-            type={showPassword ? "text" : "password"}
+            type={formData.showPassword ? "text" : "password"}
             name="password"
             id="password"
-            value={data.password}
+            value={formData.password}
             onChange={handleChange}
             required
             className="block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-primary focus:outline-none focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -103,7 +132,7 @@ export default function SigninWithPassword() {
               onClick={togglePasswordVisibility}
               className="text-gray-400 hover:text-gray-500 focus:text-gray-500 focus:outline-none dark:text-gray-300 dark:hover:text-gray-200"
             >
-              {showPassword ? (
+              {formData.showPassword ? (
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -146,15 +175,15 @@ export default function SigninWithPassword() {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <input
-            id="remember"
-            name="remember"
+            id="rememberMe"
+            name="rememberMe"
             type="checkbox"
-            checked={data.remember}
+            checked={formData.rememberMe}
             onChange={handleChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
           />
           <label
-            htmlFor="remember"
+            htmlFor="rememberMe"
             className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
           >
             Remember me
@@ -179,4 +208,6 @@ export default function SigninWithPassword() {
       </div>
     </form>
   );
-}
+};
+
+export default SigninWithPassword;

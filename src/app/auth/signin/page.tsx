@@ -34,6 +34,7 @@ const SignIn: React.FC = () => {
                   width={176}
                   height={32}
                   className="dark:hidden"
+                  style={{ width: "auto", height: "auto" }}
                 />
                 <Image
                   src="/images/logo/logo-dark.svg"
@@ -41,6 +42,7 @@ const SignIn: React.FC = () => {
                   width={176}
                   height={32}
                   className="hidden dark:block"
+                  style={{ width: "auto", height: "auto" }}
                 />
               </div>
               <h3 className="mb-4 text-2xl font-bold text-white">
@@ -59,6 +61,7 @@ const SignIn: React.FC = () => {
                 width={400}
                 height={300}
                 className="relative z-10 mx-auto opacity-70"
+                priority
               />
             </div>
           </div>

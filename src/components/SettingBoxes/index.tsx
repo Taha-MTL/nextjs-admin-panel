@@ -15,9 +15,9 @@ import {
   Close,
 } from "@mui/icons-material";
 import { Avatar, IconButton } from "@mui/material";
-import { useRouter } from "next/navigation";
 import Loader from "../Loader/Subtle";
 import { dismissToast, showToast } from "../Toast";
+import UserData from "@/interface/userData.interface";
 
 interface FormData {
   fullName: string;
@@ -31,7 +31,7 @@ interface PhotoData {
   photoURL: string | null;
 }
 
-const SettingBoxes = () => {
+const SettingBoxes: React.FC = () => {
   const [userId, setUserId] = useState<string | undefined>(
     auth.currentUser?.uid,
   );
@@ -39,7 +39,6 @@ const SettingBoxes = () => {
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [previewURL, setPreviewURL] = useState<string | null>(null); // State for image preview
   const storage = getStorage();
-  const router = useRouter();
 
   const {
     register: registerPersonalInfo,
@@ -48,7 +47,6 @@ const SettingBoxes = () => {
     formState: { errors: personalErrors },
   } = useForm<FormData>();
 
-  // Photo form
   const {
     register: registerPhoto,
     handleSubmit: handlePhotoSubmit,
@@ -61,7 +59,6 @@ const SettingBoxes = () => {
         if (userId) {
           const userDoc = await getDoc(doc(db, "users", userId));
           const userData = userDoc.data() as FormData & PhotoData;
-          console.log(userData);
           Object.keys(userData).forEach((key) => {
             setPersonalValue(
               key as keyof FormData,
@@ -89,7 +86,6 @@ const SettingBoxes = () => {
   const onSubmitPersonalInfo = async (data: FormData) => {
     try {
       setLoading(true);
-      console.log(userId);
       await setDoc(doc(db, "users", userId as string), data, { merge: true });
       showToast("success", "Personal information updated successfully");
     } catch (error) {
@@ -355,14 +351,14 @@ const SettingBoxes = () => {
                 {/* File upload input */}
                 <div
                   id="FileUpload"
-                  className="relative mb-4 block w-full cursor-pointer appearance-none rounded-xl border border-dashed border-gray-4 bg-gray-2 px-4 py-4 hover:border-primary dark:border-dark-3 dark:bg-dark-2 dark:hover:border-primary sm:py-7.5"
+                  className={`relative mb-4 block w-full cursor-pointer appearance-none rounded-xl border border-dashed border-gray-4 bg-gray-2 px-4 py-4 hover:border-primary dark:border-dark-3 dark:bg-dark-2 dark:hover:border-primary sm:py-7.5 ${photoErrors.photoURL ? "border-red-500" : ""}`}
                 >
                   <input
                     type="file"
                     accept="image/*"
                     className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
                     {...registerPhoto("photoURL", {
-                      required: "Photo is required",
+                      required: "Please select an image first.",
                     })}
                     onChange={handlePhotoUpload}
                   />
