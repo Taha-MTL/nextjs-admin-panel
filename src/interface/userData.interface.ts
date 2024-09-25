@@ -1,11 +1,10 @@
 export default interface UserData {
   id: string;
   email: string;
-  rememberMe: boolean;
-  fullName: string | null;
+  fullName: string;
+  username: string;
   title: string | null;
-  emailAddress: string | null;
-  username: string | null;
+  phoneNumber: string | null;
   bio: string | null;
   photoURL: string | null;
 }
