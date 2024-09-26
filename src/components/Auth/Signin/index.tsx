@@ -25,7 +25,7 @@ export default function Signin() {
     <Loader />
   ) : (
     <div className="space-y-6">
-      <GoogleSigninButton text="Sign in with Google" />
+      <GoogleSigninButton text="Sign in with Google" setLoading={setLoading}/>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

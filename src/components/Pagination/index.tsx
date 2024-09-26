@@ -19,7 +19,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxVisiblePages = 3;
+    const maxVisiblePages = 5;
 
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -32,10 +32,12 @@ const Pagination: React.FC<PaginationProps> = ({
       pageNumbers.push(
         <button
           key={i}
-          onClick={() => onPageChange(i)}
+          onClick={() => {
+            currentPage !== i ? onPageChange(i) : null;
+          }}
           className={`rounded-md px-3 py-1 ${
             currentPage === i
-              ? "bg-primary text-white"
+              ? "cursor-default bg-primary text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
@@ -58,39 +60,45 @@ const Pagination: React.FC<PaginationProps> = ({
         of <strong>{totalItems}</strong> result(s)
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label htmlFor="itemsPerPage" className="text-sm text-gray-700">
-          Items per page:
-        </label>
-        <select
-          id="itemsPerPage"
-          value={itemsPerPage}
-          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="rounded-md bg-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-        >
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={25}>25</option>
-          <option value={50}>50</option>
-        </select>
+      {/* Wrap this part in a responsive div */}
+      <div className="flex flex-col items-center space-y-5 sm:flex-row sm:space-x-4 sm:space-y-0">
+        <div className="flex items-center space-x-2">
+          <label htmlFor="itemsPerPage" className="text-sm text-gray-700">
+            Items per page:
+          </label>
+          <select
+            id="itemsPerPage"
+            value={itemsPerPage}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="rounded-md bg-gray-200 px-3 py-2 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
 
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="rounded-md bg-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Prev
-        </button>
+        {/* Pagination controls go here */}
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="rounded-md bg-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Prev
+          </button>
 
-        <div className="flex space-x-1">{renderPageNumbers()}</div>
+          <div className="flex space-x-1">{renderPageNumbers()}</div>
 
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="rounded-md bg-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Next
-        </button>
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="rounded-md bg-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

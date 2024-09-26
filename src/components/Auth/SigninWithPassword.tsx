@@ -8,11 +8,9 @@ import React, {
 } from "react";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/components/Toast";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { RememberMe } from "@mui/icons-material";
 
 interface SignInFormData {
   email: string;

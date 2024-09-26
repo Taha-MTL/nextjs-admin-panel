@@ -1,8 +1,42 @@
 import React from "react";
+import { auth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { showToast } from "../Toast";
 
-export default function GoogleSigninButton({ text }: { text: string }) {
+export default function GoogleSigninButton({
+  text,
+  setLoading,
+}: {
+  text: string;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const router = useRouter();
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      console.log("User signed in:", user);
+      showToast("success", "Signed in successfully!");
+      router.push("/");
+    } catch (error: any) {
+      if (error.code === "auth/popup-closed-by-user") {
+        showToast("error", "Sign in cancelled.");
+      } else {
+        showToast("error", "Failed to sign in.");
+      }
+      console.error("Error during Google Sign-In:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <button
+      onClick={handleGoogleSignIn}
       className="flex w-full items-center justify-center gap-3.5 rounded-lg border border-stroke bg-gray-2 p-[15px] font-medium hover:bg-opacity-50 dark:border-dark-3 dark:bg-dark-2 dark:hover:bg-opacity-50"
     >
       <span>

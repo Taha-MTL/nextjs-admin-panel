@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { dismissToast, showToast } from "../Toast";
 import { ReceiptItem } from "./interface";
+import { useUser } from "@/context/UserContext";
 
 const AddReceipt = () => {
   const router = useRouter();
@@ -14,6 +15,7 @@ const AddReceipt = () => {
     { id: 1, itemName: "", unit: "kg", quantity: 0, amount: 0 },
   ]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const { user } = useUser();
 
   const handleAddItem = () => {
     setItems([
@@ -83,6 +85,7 @@ const AddReceipt = () => {
         items,
         totalAmount: calculateTotal(),
         createdAt: new Date().toISOString(),
+        userId: user?.id,
       });
 
       showToast("success", "Receipt created successfully!");

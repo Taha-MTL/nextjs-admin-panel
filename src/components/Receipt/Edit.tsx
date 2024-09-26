@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { dismissToast, showToast } from "../Toast";
 import { ReceiptItem } from "./interface";
+import { useUser } from "@/context/UserContext";
 
 const EditReceipt = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ const EditReceipt = () => {
   const [customerName, setCustomerName] = useState("");
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchReceipt = async () => {
@@ -22,11 +24,21 @@ const EditReceipt = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
+
+          if (data.userId !== user?.id) {
+            showToast(
+              "error",
+              "You are not authorized to access this receipt!",
+            );
+            router.push("/receipts");
+            return;
+          }
           setCustomerName(data.customerName);
           setItems(data.items || []);
         } else {
           showToast("error", "No such document!");
-          router.back();
+          router.push("/receipts");
+          return;
         }
       } catch (error) {
         console.error("Error fetching receipt: ", error);

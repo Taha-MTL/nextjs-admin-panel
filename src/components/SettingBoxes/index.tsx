@@ -25,8 +25,7 @@ import { Avatar, IconButton } from "@mui/material";
 import Loader from "../Loader/Subtle";
 import { showToast } from "../Toast";
 import { useUser } from "@/context/UserContext";
-import { useRouter } from "next/navigation";
-import UserData from "@/interface/userData.interface";
+import { UserData } from "@/common/interface";
 import DeleteAlert from "../Alerts/Delete";
 
 interface FormData {
@@ -49,7 +48,6 @@ const SettingBoxes: React.FC = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
 
   const storage = getStorage();
-  const router = useRouter();
 
   const {
     register: registerPersonalInfo,
@@ -68,7 +66,6 @@ const SettingBoxes: React.FC = () => {
   useEffect(() => {
     const setUserData = async () => {
       if (user) {
-        console.log(user);
         Object.keys(user).forEach((key) => {
           setPersonalValue(
             key as keyof FormData,
@@ -76,8 +73,6 @@ const SettingBoxes: React.FC = () => {
           );
         });
         setPhotoURL(user.photoURL || null);
-      } else {
-        router.push("/auth/signin");
       }
     };
 
@@ -89,8 +84,11 @@ const SettingBoxes: React.FC = () => {
   const onSubmitPersonalInfo = async (data: FormData) => {
     try {
       setLoading(true);
-      await setDoc(doc(db, "users", user!.id), data, { merge: true });
-      setUser({ ...user, ...data } as UserData);
+      const submitData = { ...data, updatedAt: new Date().toISOString() };
+      await setDoc(doc(db, "users", user?.id as string), submitData, {
+        merge: true,
+      });
+      setUser({ ...user, ...submitData } as UserData);
       showToast("success", "Personal information updated successfully");
     } catch (error) {
       console.error("Error updating personal information:", error);
@@ -132,17 +130,22 @@ const SettingBoxes: React.FC = () => {
 
     try {
       setLoading(true);
-      const storageRef = ref(storage, `profilePhotos/${user!.id}`);
+      const storageRef = ref(storage, `profilePhotos/${user?.id}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
       await setDoc(
-        doc(db, "users", user!.id),
-        { photoURL: downloadURL },
+        doc(db, "users", user?.id as string),
+        { photoURL: downloadURL, updatedAt: new Date().toISOString() },
         { merge: true },
       );
 
-      setUser({ ...user, photoURL: downloadURL } as UserData);
+      setUser({
+        ...user,
+        photoURL: downloadURL,
+        updatedAt: new Date().toISOString(),
+      } as UserData);
+
       setPhotoURL(downloadURL);
       showToast("success", "Profile picture updated successfully");
       setPreviewURL(null);
@@ -164,16 +167,20 @@ const SettingBoxes: React.FC = () => {
   const handleDeleteConfirm = async () => {
     try {
       setLoading(true);
-      const storageRef = ref(storage, `profilePhotos/${user!.id}`);
+      const storageRef = ref(storage, `profilePhotos/${user?.id}`);
       await deleteObject(storageRef);
 
       await setDoc(
-        doc(db, "users", user!.id),
-        { photoURL: null },
+        doc(db, "users", user?.id as string),
+        { photoURL: null, updatedAt: new Date().toISOString() },
         { merge: true },
       );
 
-      setUser({ ...user, photoURL: null } as UserData);
+      setUser({
+        ...user,
+        photoURL: null,
+        updatedAt: new Date().toISOString(),
+      } as UserData);
       setPhotoURL(null);
       showToast("success", "Profile picture deleted successfully");
     } catch (error) {

@@ -8,6 +8,7 @@ export interface ReceiptItem {
 
 export interface Receipt {
   id: string;
+  userId: string;
   customerName: string;
   totalAmount: number;
   items: ReceiptItem[];

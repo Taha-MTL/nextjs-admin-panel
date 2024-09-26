@@ -13,7 +13,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import Loader from "@/components/Loader/FullPage";
 import { useRouter } from "next/navigation";
-import UserData from "@/interface/userData.interface";
+import { UserData } from "@/common/interface";
 
 interface UserContextType {
   user: UserData | null;
@@ -51,8 +51,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           const data = {
             id: firebaseUser.uid,
             email: firebaseUser.email,
-            fullName: "Admin",
-            username: "Admin",
+            fullName: firebaseUser.displayName || "Admin",
+            username: firebaseUser.displayName || "Admin",
+            photoURL: firebaseUser.photoURL || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           };
           await setDoc(doc(db, "users", firebaseUser.uid), data);
           setUser(data as UserData);

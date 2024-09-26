@@ -11,12 +11,19 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  where,
+  limit,
+  startAfter,
+  getCountFromServer,
+  DocumentData,
+  startAt,
 } from "firebase/firestore";
 import { Edit, Delete } from "@mui/icons-material";
 import DeleteAlert from "@/components/Alerts/Delete";
 import Loader from "../Loader/Subtle";
 import { showToast } from "../Toast";
 import { Receipt } from "./interface";
+import { useUser } from "@/context/UserContext";
 
 const ReceiptList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,7 +31,8 @@ const ReceiptList = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [receiptToDelete, setReceiptToDelete] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { user } = useUser();
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -37,23 +45,28 @@ const ReceiptList = () => {
 
   useEffect(() => {
     fetchReceipts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchReceipts = async () => {
+    setLoading(true);
     try {
-      const q = query(collection(db, "receipts"), orderBy("createdAt", "desc"));
-      const fetchedReceipts: Receipt[] = (await getDocs(q)).docs.map(
-        (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-          }) as Receipt,
+      let q = query(
+        collection(db, "receipts"),
+        where("userId", "==", user?.id),
+        orderBy("createdAt", "desc"),
       );
+
+      const snapshot = await getDocs(q);
+      const fetchedReceipts: Receipt[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Receipt[];
 
       setReceipts(fetchedReceipts);
     } catch (error) {
       console.error("Error fetching receipts: ", error);
-      showToast("error", "Failed to fetch receipts");
+      showToast("error", "Failed to fetch receipts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,9 +82,6 @@ const ReceiptList = () => {
       setLoading(true);
       try {
         await deleteDoc(doc(db, "receipts", receiptToDelete));
-        setReceipts(
-          receipts.filter((receipt) => receipt.id !== receiptToDelete),
-        );
         setReceiptToDelete(null);
         showToast("success", "Receipt deleted successfully");
       } catch (error) {
@@ -100,8 +110,17 @@ const ReceiptList = () => {
 
       {loading ? (
         <Loader />
-      ) : receipts.length ? (
+      ) : receipts.length > 0 ? (
         <>
+          <div className="mb-6 mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={receipts.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={(page) => setCurrentPage(page)}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
+          </div>
           <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
             <div className="max-w-full overflow-x-auto">
               <table className="w-full table-auto">
@@ -159,15 +178,6 @@ const ReceiptList = () => {
                 </tbody>
               </table>
             </div>
-          </div>
-          <div className="mt-6">
-            <Pagination
-              currentPage={currentPage}
-              totalItems={receipts.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={handleItemsPerPageChange}
-            />
           </div>
         </>
       ) : (
