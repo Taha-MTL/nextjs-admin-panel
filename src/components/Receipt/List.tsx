@@ -12,13 +12,9 @@ import {
   deleteDoc,
   doc,
   where,
-  limit,
-  startAfter,
-  getCountFromServer,
-  DocumentData,
-  startAt,
 } from "firebase/firestore";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Search } from "@mui/icons-material";
+import { ChevronDown } from "lucide-react";
 import DeleteAlert from "@/components/Alerts/Delete";
 import Loader from "../Loader/Subtle";
 import { showToast } from "../Toast";
@@ -28,15 +24,22 @@ import { useUser } from "@/context/UserContext";
 const ReceiptList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [filteredReceipts, setFilteredReceipts] = useState<Receipt[]>([]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [receiptToDelete, setReceiptToDelete] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterOption, setFilterOption] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
   const { user } = useUser();
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = receipts.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredReceipts.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   const handleItemsPerPageChange = (itemsPerPage: number) => {
     setItemsPerPage(itemsPerPage);
@@ -46,30 +49,96 @@ const ReceiptList = () => {
   useEffect(() => {
     fetchReceipts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    filterReceipts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, filterOption, dateFilter, receipts]);
 
   const fetchReceipts = async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
-      let q = query(
+      const q = query(
         collection(db, "receipts"),
-        where("userId", "==", user?.id),
+        where("userId", "==", user.id),
         orderBy("createdAt", "desc"),
       );
 
       const snapshot = await getDocs(q);
-      const fetchedReceipts: Receipt[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Receipt[];
+      const fetchedReceipts: Receipt[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: new Date(data.createdAt),
+        };
+      }) as Receipt[];
 
       setReceipts(fetchedReceipts);
+      setFilteredReceipts(fetchedReceipts);
     } catch (error) {
       console.error("Error fetching receipts: ", error);
       showToast("error", "Failed to fetch receipts. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterReceipts = () => {
+    let filtered = receipts;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter((receipt) =>
+        receipt.customerName.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Apply dropdown filter
+    switch (filterOption) {
+      case "highValue":
+        filtered = filtered.filter((receipt) => receipt.totalAmount >= 1000);
+        break;
+      case "lowValue":
+        filtered = filtered.filter((receipt) => receipt.totalAmount < 1000);
+        break;
+    }
+
+    // Apply date filter
+    const now = new Date();
+    switch (dateFilter) {
+      case "week":
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        filtered = filtered.filter(
+          (receipt) => receipt.createdAt >= oneWeekAgo,
+        );
+        break;
+      case "month":
+        const oneMonthAgo = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          now.getDate(),
+        );
+        filtered = filtered.filter(
+          (receipt) => receipt.createdAt >= oneMonthAgo,
+        );
+        break;
+      case "year":
+        const oneYearAgo = new Date(
+          now.getFullYear() - 1,
+          now.getMonth(),
+          now.getDate(),
+        );
+        filtered = filtered.filter(
+          (receipt) => receipt.createdAt >= oneYearAgo,
+        );
+        break;
+    }
+
+    setFilteredReceipts(filtered);
+    setCurrentPage(1);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -84,6 +153,7 @@ const ReceiptList = () => {
         await deleteDoc(doc(db, "receipts", receiptToDelete));
         setReceiptToDelete(null);
         showToast("success", "Receipt deleted successfully");
+        fetchReceipts(); // Refresh the list after deletion
       } catch (error) {
         console.error("Error deleting receipt: ", error);
         showToast("error", "Failed to delete receipt");
@@ -96,26 +166,62 @@ const ReceiptList = () => {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-title-md2 font-bold text-black dark:text-white">
-          Receipts List
-        </h2>
-
+      <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:space-x-4 ">
         <ButtonDefault
           label="Create Receipt"
           customClasses="border border-green text-green rounded-[5px] px-10 py-3.5 lg:px-8 xl:px-10"
           link="/receipts/add"
         />
+
+        <div className="flex flex-col items-center space-y-4 sm:w-auto sm:flex-row sm:space-x-4 sm:space-y-0">
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Search by customer name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-md border border-stroke bg-gray-100 py-3 pl-12 pr-4 outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark dark:text-white"
+            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+          </div>
+
+          <div className="relative w-full sm:w-auto">
+            <select
+              value={filterOption}
+              onChange={(e) => setFilterOption(e.target.value)}
+              className="w-full appearance-none rounded-md border border-stroke bg-gray-100 px-4 py-3 pr-8 outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark dark:text-white"
+            >
+              <option value="all">All Receipts</option>
+              <option value="highValue">High Value (≥₹1000)</option>
+              <option value="lowValue">Low Value (&lt;₹1000)</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          </div>
+
+          <div className="relative w-full sm:w-auto">
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full appearance-none rounded-md border border-stroke bg-gray-100 px-4 py-3 pr-8 outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark dark:text-white"
+            >
+              <option value="all">All Time</option>
+              <option value="week">Last Week</option>
+              <option value="month">Last Month</option>
+              <option value="year">Last Year</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          </div>
+        </div>
       </div>
 
       {loading ? (
         <Loader />
-      ) : receipts.length > 0 ? (
+      ) : filteredReceipts.length > 0 ? (
         <>
           <div className="mb-6 mt-6">
             <Pagination
               currentPage={currentPage}
-              totalItems={receipts.length}
+              totalItems={filteredReceipts.length}
               itemsPerPage={itemsPerPage}
               onPageChange={(page) => setCurrentPage(page)}
               onItemsPerPageChange={handleItemsPerPageChange}
